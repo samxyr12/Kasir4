@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Penerimaan Barang</title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<style>
+    body {
+        font-family: 'Arial', sans-serif;
+        line-height: 1.6;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #e9ecef;
+    }
+
+    h1 {
+        text-align: center;
+        color: #333;
+        margin-bottom: 30px;
+        border-bottom: 3px solid #4CAF50;
+        padding-bottom: 10px;
+    }
+
+    .btn {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        margin: 20px 0;
+    }
+
+    button {
+        background-color: #4CAF50;
+        border: none;
+        color: white;
+        padding: 10px 20px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        margin: 4px 2px;
+        cursor: pointer;
+        border-radius: 5px;
+        transition: background-color 0.3s ease, transform 0.2s ease;
+    }
+
+    button:hover {
+        background-color: #45a049;
+        transform: scale(1.05);
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+        background-color: white;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    table, th, td {
+        border: 1px solid #ddd;
+    }
+
+    th, td {
+        padding: 10px;
+        text-align: left;
+    }
+
+    th {
+        background-color: #f2f2f2;
+        font-weight: bold;
+        color: #333;
+    }
+
+    input, select {
+        width: 100%;
+        padding: 8px;
+        margin: 0;
+        box-sizing: border-box;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        transition: border-color 0.3s ease;
+    }
+
+    input:focus, select:focus {
+        border-color: #4CAF50;
+        outline: none;
+    }
+
+    input[type="number"] {
+        text-align: right;
+    }
+
+    .stock-table, .history-table {
+        display: none;
+    }
+
+    /* Responsiveness */
+    @media screen and (max-width: 768px) {
+        table {
+            font-size: 12px;
+        }
+
+        .btn {
+            flex-direction: column;
+            align-items: center;
+        }
+
+        button {
+            width: 100%;
+            margin: 5px 0;
+        }
+    }
+
+    /* Alternate row colors for better readability */
+    tbody tr:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+
+    tbody tr:hover {
+        background-color: #f5f5f5;
+    }
+
+    /* Style for delete button in each row */
+    tbody button {
+        background-color: #f44336;
+        padding: 5px 10px;
+        font-size: 12px;
+        border-radius: 4px;
+        color: white;
+        border: none;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    tbody button:hover {
+        background-color: #d32f2f;
+    }
+
+    /* Scrollable table for long data */
+    .table-container {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+
+    /* Input validation styles */
+    input:invalid {
+        border-color: #f44336;
+        box-shadow: 0 0 5px rgba(244, 67, 54, 0.5);
+    }
+
+    /* General styles for tables */
+    .table-container {
+        margin: 20px 0;
+        overflow: auto;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Additional styles for a clean layout */
+    .container {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+</style>
+</head>
+<body>
+    <h1>Penerimaan Barang</h1>
+    
+    <div class="btn">
+        <button onclick="tambahBaris()">Tambah Baris</button>
+        <button onclick="simpanPenerimaan()">Simpan Penerimaan</button>
+    </div>
+
+    <table id="tabelPenerimaan">
+        <thead>
+            <tr>
+                <th>Tanggal</th>
+                <th>Kode Barang</th>
+                <th>Nama Barang</th>
+                <th>Kategori</th>
+                <th>Kode Toko</th>
+                <th>Jumlah Diterima</th>
+                <th>Harga Beli</th>
+                <th>Harga Jual</th>
+                <th>Total</th>
+                <th>Aksi</th>
+            </tr>
+        </thead>
+        <tbody id="bodyPenerimaan">
+            <!-- Baris akan ditambahkan secara dinamis -->
+        </tbody>
+    </table>
+
+    <div class="btn">
+        <button onclick="tampilkanRiwayatPenerimaan()">Lihat Riwayat Penerimaan</button>
+        <button onclick="tampilkanStok()">Lihat Stok Barang</button>
+    </div>
+
+    <table class="stock-table" id="tabelStok">
+        <thead>
+            <tr>
+                <th>Kode Barang</th>
+                <th>Nama Barang</th>
+                <th>Kategori</th>
+                <th>Kode Toko</th>
+                <th>Stok</th>
+                <th>Harga Beli</th>
+                <th>Harga Jual</th>
+            </tr>
+        </thead>
+        <tbody id="bodyStok">
+            <!-- Stok akan ditampilkan di sini -->
+        </tbody>
+    </table>
+
+    <table class="history-table" id="tabelRiwayat">
+        <thead>
+            <tr>
+                <th>Tanggal</th>
+                <th>Kode Barang</th>
+                <th>Nama Barang</th>
+                <th>Kategori</th>
+                <th>Kode Toko</th>
+                <th>Jumlah Diterima</th>
+                <th>Harga Beli</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody id="bodyRiwayat">
+            <!-- Riwayat penerimaan akan ditampilkan di sini -->
+        </tbody>
+    </table>
+
+    <script>
+        function tambahBaris() {
+            const tbody = document.getElementById('bodyPenerimaan');
+            const newRow = tbody.insertRow();
+
+           const cellTanggal = newRow.insertCell(0);
+const tanggalInput = document.createElement('input');
+tanggalInput.type = 'date';
+tanggalInput.value = new Date().toISOString().split('T')[0];
+cellTanggal.appendChild(tanggalInput);
+
+            // Kode Barang dengan fitur autocomplete
+            const cellKode = newRow.insertCell(1);
+            const kodeInput = document.createElement('input');
+            kodeInput.type = 'text';
+            kodeInput.placeholder = 'Kode Barang';
+            kodeInput.addEventListener('change', function() {
+                cariAtauTambahBarang(this);
+            });
+            cellKode.appendChild(kodeInput);
+
+            // Nama Barang
+            const cellNama = newRow.insertCell(2);
+            const namaInput = document.createElement('input');
+            namaInput.type = 'text';
+            cellNama.appendChild(namaInput);
+
+            // Kategori
+            const cellKategori = newRow.insertCell(3);
+            const kategoriInput = document.createElement('select');
+            const kategoriOptions = ['A1', 'A2', 'A3', 'A4', 'A5', 'B1', 'B2', 'B3', 'B4', 'B5', 'B6', 'C1', 'C2', 'C3', 'C4', 'C5', 'C6', 'C7'];
+            kategoriOptions.forEach(kategori => {
+                const option = document.createElement('option');
+                option.value = kategori;
+                option.text = kategori;
+                kategoriInput.appendChild(option);
+            });
+            cellKategori.appendChild(kategoriInput);
+
+            // Kode Toko
+            const cellKodeToko = newRow.insertCell(4);
+            const kodeTokoInput = document.createElement('input');
+            kodeTokoInput.type = 'text';
+            kodeTokoInput.placeholder = 'Kode Toko';
+            cellKodeToko.appendChild(kodeTokoInput);
+
+            // Jumlah Diterima
+            const cellJumlah = newRow.insertCell(5);
+            const jumlahInput = document.createElement('input');
+            jumlahInput.type = 'number';
+            jumlahInput.min = '1';
+            jumlahInput.addEventListener('change', hitungTotal);
+            cellJumlah.appendChild(jumlahInput);
+
+            // Harga Beli
+            const cellHargaBeli = newRow.insertCell(6);
+            const hargaBeliInput = document.createElement('input');
+            hargaBeliInput.type = 'number';
+            hargaBeliInput.addEventListener('change', hitungTotal);
+            cellHargaBeli.appendChild(hargaBeliInput);
+
+            // Harga Jual
+            const cellHargaJual = newRow.insertCell(7);
+            const hargaJualInput = document.createElement('input');
+            hargaJualInput.type = 'number';
+            hargaJualInput.addEventListener('change', hitungTotal);
+            cellHargaJual.appendChild(hargaJualInput);
+
+            // Total
+            const cellTotal = newRow.insertCell(8);
+            const totalInput = document.createElement('input');
+            totalInput.type = 'number';
+            totalInput.readOnly = true;
+            cellTotal.appendChild(totalInput);
+
+            // Tombol Hapus
+            const cellAksi = newRow.insertCell(9);
+            const hapusBtn = document.createElement('button');
+            hapusBtn.textContent = 'Hapus';
+            hapusBtn.onclick = function() {
+                tbody.removeChild(newRow);
+            };
+            cellAksi.appendChild(hapusBtn);
+        }
+
+        function cariAtauTambahBarang(kodeInput) {
+            const barang = JSON.parse(localStorage.getItem('barang')) || [];
+            const barangDitemukan = barang.find(item => item.kode === kodeInput.value);
+
+            const row = kodeInput.closest('tr');
+            const namaInput = row.cells[2].querySelector('input');
+            const kategoriInput = row.cells[3].querySelector('select');
+            const kodeTokoInput = row.cells[4].querySelector('input');
+            const hargaBeliInput = row.cells[6].querySelector('input');
+            const hargaJualInput = row.cells[7].querySelector('input');
+
+            if (barangDitemukan) {
+                // Jika barang sudah ada
+                namaInput.value = barangDitemukan.nama;
+                kategoriInput.value = barangDitemukan.kategori;
+                kodeTokoInput.value = barangDitemukan.kodeToko;
+                hargaBeliInput.value = barangDitemukan.hargaBeli;
+                hargaJualInput.value = barangDitemukan.hargaJual;
+            } else {
+                // Jika barang tidak ditemukan, minta konfirmasi untuk menambahkan
+                Swal.fire({
+                    title: 'Barang Tidak Ditemukan',
+                    text: 'Apakah Anda ingin menambahkan barang baru?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Ya, Tambahkan',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed ) {
+                        // Generate PLU dari 4 digit terakhir kode barang
+                        const plu = kodeInput.value.slice(-4);
+
+                        // Biarkan pengguna mengisi detail
+                        Swal.fire({
+                            title: 'Tambah Barang Baru',
+                            html: `
+                                <input id="namaBarang" class="swal2-input" placeholder="Nama Barang">
+                                <input id="jumlah" type="number" class="swal2-input" placeholder="Jumlah" min="1">
+                                <input id="hargaBeli" type="number" class="swal2-input" placeholder="Harga Beli">
+                                <input id="hargaJual" type="number" class="swal2-input" placeholder="Harga Jual">
+                            `,
+                            focusConfirm: false,
+                            preConfirm: () => {
+                                const namaBarang = document.getElementById('namaBarang').value;
+                                const jumlah = parseInt(document.getElementById('jumlah').value);
+                                const hargaBeli = parseFloat(document.getElementById('hargaBeli').value);
+                                const hargaJual = parseFloat(document.getElementById('hargaJual').value);
+
+                                if (!namaBarang || isNaN(jumlah) || isNaN(hargaBeli) || isNaN(hargaJual)) {
+                                    Swal.showValidationMessage('Semua field harus diisi dengan benar');
+                                } else {
+                                    return { namaBarang, jumlah, hargaBeli, hargaJual, plu };
+                                }
+                            }
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                const { namaBarang, jumlah, hargaBeli, hargaJual, plu } = result.value;
+
+                                // Tambahkan barang baru ke localStorage
+                                const newBarang = {
+                                    kode: kodeInput.value,
+                                    nama: namaBarang,
+                                    kategori: kategoriInput.value,
+                                    kodeToko: kodeTokoInput.value,
+                                    plu: plu,
+                                    stok: jumlah,
+                                    hargaBeli: hargaBeli,
+                                    hargaJual: hargaJual,
+                                    terjual: 0
+                                };
+
+                                let barang = JSON.parse(localStorage.getItem('barang')) || [];
+                                barang.push(newBarang);
+                                localStorage.setItem('barang', JSON.stringify(barang));
+
+                                // Update input di tabel
+                                namaInput.value = namaBarang;
+                                hargaBeliInput.value = hargaBeli;
+                                hargaJualInput.value = hargaJual;
+                                hitungTotal({ target: { closest: () => row, value: jumlah } });
+                            }
+                        });
+                    }
+                });
+            }
+        }
+
+        function hitungTotal(event) {
+            const row = event.target.closest('tr');
+            const jumlahInput = row.cells[5].querySelector('input');
+            const hargaBeliInput = row.cells[6].querySelector('input');
+            const totalInput = row.cells[8].querySelector('input');
+
+            const jumlah = parseFloat(jumlahInput.value) || 0;
+            const hargaBeli = parseFloat(hargaBeliInput.value) || 0;
+
+            totalInput.value = jumlah * hargaBeli;
+        }
+
+        function simpanPenerimaan() {
+            const tbody = document.getElementById('bodyPenerimaan');
+            const rows = tbody.rows;
+            const penerimaanBarang = [];
+
+            for (let row of rows) {
+                const tanggal = row.cells[0].querySelector('input').value;
+                const kodeBarang = row.cells[1].querySelector('input').value;
+                const namaBarang = row.cells[2].querySelector('input').value;
+                const kategori = row.cells[3].querySelector('select').value;
+                const kodeToko = row.cells[4].querySelector('input').value;
+                const jumlah = parseFloat(row.cells[5].querySelector('input').value) || 0;
+                const hargaBeli = parseFloat(row.cells[6].querySelector('input').value) || 0;
+                const total = parseFloat(row.cells[8].querySelector('input').value) || 0;
+
+                if (kodeBarang && jumlah > 0) {
+                    let barang = JSON.parse(localStorage.getItem('barang')) || [];
+                    const barangIndex = barang.findIndex(item => item.kode === kodeBarang);
+
+                    if (barangIndex !== -1) {
+                        barang[barangIndex].stok += jumlah;
+                        barang[barangIndex].kodeToko = kodeToko;
+                        localStorage.setItem('barang', JSON.stringify(barang));
+                    } else {
+                        barang.push({
+                            kode: kodeBarang,
+                            nama: namaBarang,
+                            kategori: kategori,
+                            kodeToko: kodeToko,
+                            stok: jumlah,
+                            hargaBeli: hargaBeli,
+                            hargaJual: row.cells[7].querySelector('input').value || 0 ,
+                            terjual: 0
+                        });
+                        localStorage.setItem('barang', JSON.stringify(barang));
+                    }
+
+                    penerimaanBarang.push({
+                        tanggal, kodeBarang, namaBarang, kategori, kodeToko, jumlah, hargaBeli, total
+                    });
+                }
+            }
+
+            const riwayatPenerimaan = JSON.parse(localStorage.getItem('penerimaanBarang')) || [];
+            riwayatPenerimaan.push(...penerimaanBarang);
+            localStorage.setItem('penerimaanBarang', JSON.stringify(riwayatPenerimaan));
+
+            alert('Penerimaan barang berhasil disimpan!');
+            tbody.innerHTML = ''; // Clear table
+        }
+
+        function tampilkanRiwayatPenerimaan() {
+            const riwayat = JSON.parse(localStorage.getItem('penerimaanBarang')) || [];
+            const tbody = document.getElementById('bodyRiwayat');
+            tbody.innerHTML = ''; // Clear previous data
+
+            riwayat.forEach(item => {
+                const row = tbody.insertRow();
+                row.insertCell(0).textContent = item.tanggal;
+                row.insertCell(1).textContent = item.kodeBarang;
+                row.insertCell(2).textContent = item.namaBarang;
+                row.insertCell(3).textContent = item.kategori;
+                row.insertCell(4).textContent = item.kodeToko;
+                row.insertCell(5).textContent = item.jumlah;
+                row.insertCell(6).textContent = item.hargaBeli;
+                row.insertCell(7).textContent = item.total;
+            });
+
+            document.getElementById('tabelRiwayat').style.display = 'table';
+            document.getElementById('tabelStok').style.display = 'none'; // Hide stock table
+        }
+
+        function tampilkanStok() {
+            const barang = JSON.parse(localStorage.getItem('barang')) || [];
+            const tbody = document.getElementById('bodyStok');
+            tbody.innerHTML = ''; // Clear previous data
+
+            barang.forEach(item => {
+                const row = tbody.insertRow();
+                row.insertCell(0).textContent = item.kode;
+                row.insertCell(1).textContent = item.nama;
+                row.insertCell(2).textContent = item.kategori;
+                row.insertCell(3).textContent = item.kodeToko;
+                row.insertCell(4).textContent = item.stok;
+                row.insertCell(5).textContent = item.hargaBeli;
+                row.insertCell(6).textContent = item.hargaJual;
+            });
+
+            document.getElementById('tabelStok').style.display = 'table';
+            document.getElementById('tabelRiwayat').style.display = 'none'; // Hide history table
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            tambahBaris();
+        });
+    </script>
+</body>
+</html>
+
+
